@@ -24,12 +24,12 @@ git clone https://github.com/your-team/sample-reels.git
 
 ### 2. コミットメッセージルール
 
-**フォーマット** 
-<Type>: #<Issue Number> <Title> 
-**例** 
-git commit -m "feat: #123 ログイン機能の実装をする" 
-※ コメント内容は、現在形が正しいらしい。"何々した"ではなくて 
-### Type（コミットの種類）一覧 
+**フォーマット**    
+<Type>: #<Issue Number> <Title>  
+**例**  
+git commit -m "feat: #123 ログイン機能の実装をする"  
+※ コメント内容は、現在形が正しいらしい。"何々した"ではなくて  
+### Type（コミットの種類）一覧  
 
 | Type       | 説明                          | 
 |------------|-------------------------------| 
