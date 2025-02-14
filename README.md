@@ -1,16 +1,40 @@
-# sample_reels
+# Sample Reels
 
-A new Flutter project.
+## 📌 概要
+技育ハッカソンにて開発中のアプリ。  
+サンプルをリール形式で表示する機能を提供。
 
-## Getting Started
+## 🛠 使用技術
+- Flutter
+- Dart
+- Firebase (予定)
+- GitHub (チーム開発)
 
-This project is a starting point for a Flutter application.
+## 🚀 開発環境セットアップ
+### 1. リポジトリをクローン
+git clone https://github.com/your-team/sample-reels.git
 
-A few resources to get you started if this is your first Flutter project:
+## GitHub 運用ルール
+### 1. ブランチ運用
+- `main`：リリース用（直接push禁止）
+- `develop`：開発ブランチ（各featureブランチをここにマージ）
+- `feature/xxx`：機能ごとの開発ブランチ
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 2. コミットメッセージルール
+
+**フォーマット**
+<Type>: #<Issue Number> <Title>
+**例**
+git commit -m "feat: #123 ログイン機能の実装をする"
+※ コメント内容は、現在形が正しいらしい。"何々した"ではなくて
+### Type（コミットの種類）一覧
+
+| Type       | 説明                          |
+|------------|-------------------------------|
+| `feat`     | 新機能追加                     |
+| `fix`      | バグ修正                       |
+| `update`   | 機能修正                       |
+| `remove`   | ファイル削除                   |
+| `doc`      | README等の更新                 |
