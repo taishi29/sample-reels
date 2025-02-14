@@ -24,7 +24,7 @@ git clone https://github.com/your-team/sample-reels.git
 
 ### 2. コミットメッセージルール
 
-**フォーマット**    
+**フォーマット**   
 <Type>: <Issue Number> <Title>  
 **例**  
 git commit -m "feat: 123 ログイン機能の実装をする"  
