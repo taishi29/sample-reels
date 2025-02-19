@@ -33,13 +33,16 @@ class MoviePageState extends State<MoviePage> {
     _initializeVideo();
   }
 
+  // **動画を初期化**
   void _initializeVideo() {
-    _controller = VideoPlayerController.networkUrl(Uri.parse(
-            'https://cc3001.dmm.co.jp/litevideo/freepv/s/son/sone00614/sone00614mhb.mp4') // ✅ 修正
-        )
-      ..initialize().then((_) {
-        setState(() {}); // ✅ UIを更新
-        _controller.play(); // ✅ 動画を自動再生
+    _controller = VideoPlayerController.network(
+      'https://cc3001.dmm.co.jp/litevideo/freepv/s/son/sone00614/sone00614mhb.mp4', // ✅ ここに直接動画URLを埋め込む
+    )..initialize().then((_) {
+        setState(() {
+          _isControllerInitialized = true;
+        });
+        _controller.setLooping(true);
+        _controller.play();
       });
   }
 
