@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "598956986415",
+    "project_id": "samplereels",
+    "storage_bucket": "samplereels.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:598956986415:android:7b5e823606578d940876da",
+        "android_client_info": {
+          "package_name": "com.example.sample_reels"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRCvnlivITv60HbIBrVcoPPNC1b9j2NEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
