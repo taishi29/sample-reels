@@ -15,7 +15,7 @@ class _ImageSliderState extends State<ImageSlider> {
   Widget build(BuildContext context) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 300, // スライドの高さ
+        height: 500, // スライドの高さ
         autoPlay: true, // 自動スライド
         autoPlayInterval: Duration(seconds: 3), // 3秒ごとにスライド
         enlargeCenterPage: true, // 中央の画像を拡大

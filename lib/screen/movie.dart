@@ -17,8 +17,14 @@ class MoviePageState extends State<MoviePage> {
   bool _isControllerInitialized = false;
 
   final List<String> imageUrls = [
-    'https://i.ytimg.com/vi/_fxIVudzl2o/maxresdefault.jpg',
-    'https://jprime.ismcdn.jp/mwimgs/7/5/620mw/img_75cb49b01a58c3aad1bdb6034ad88c23709193.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-1.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-2.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-3.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-4.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-5.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-6.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-7.jpg',
+    'https://pics.dmm.co.jp/digital/video/sone00614/sone00614jp-8.jpg',
   ];
 
   @override
@@ -27,16 +33,13 @@ class MoviePageState extends State<MoviePage> {
     _initializeVideo();
   }
 
-  // **動画を初期化**
   void _initializeVideo() {
-    _controller = VideoPlayerController.network(
-      'https://youtu.be/uAHI8mSi5fY', // ✅ ここに直接動画URLを埋め込む
-    )..initialize().then((_) {
-        setState(() {
-          _isControllerInitialized = true;
-        });
-        _controller.setLooping(true);
-        _controller.play();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(
+            'https://cc3001.dmm.co.jp/litevideo/freepv/s/son/sone00614/sone00614mhb.mp4') // ✅ 修正
+        )
+      ..initialize().then((_) {
+        setState(() {}); // ✅ UIを更新
+        _controller.play(); // ✅ 動画を自動再生
       });
   }
 
