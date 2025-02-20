@@ -46,3 +46,9 @@ app.*.map.json
 
 # Firebase.jason
 .firebase.json
+
+
+# Firebase APIキーの漏洩防止
+lib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
