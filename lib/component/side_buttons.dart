@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sample_reels/component/comment.dart';
 
 class RightSideButtons extends StatefulWidget {
   final VoidCallback onLikePressed;
@@ -17,6 +18,19 @@ class RightSideButtons extends StatefulWidget {
 }
 
 class RightSideButtonsState extends State<RightSideButtons> {
+  // ✅ コメント入力用のモーダルを表示
+  void _showCommentSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // ✅ 全画面表示に近いスクロール可能なモーダル
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.white, // ✅ 背景色
+      builder: (context) => const CommentSheet(), // ✅ `CommentSheet` を呼び出す
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -43,12 +57,17 @@ class RightSideButtonsState extends State<RightSideButtons> {
           ),
           const SizedBox(height: 20),
 
-          // コメントボタン
-          Column(
-            children: [
-              Icon(Icons.comment, color: Colors.white, size: 40),
-              Text("0", style: TextStyle(color: Colors.white, fontSize: 14)),
-            ],
+          // ✅ コメントボタン（押すとモーダルが開く）
+          GestureDetector(
+            onTap: () =>
+                _showCommentSheet(context), // ✅ `showModalBottomSheet` を実行
+            child: Column(
+              children: [
+                const Icon(Icons.comment, color: Colors.white, size: 40),
+                const Text("コメント",
+                    style: TextStyle(color: Colors.white, fontSize: 14)),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
 
