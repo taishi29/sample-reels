@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart'; // ✅ Firebaseをインポート
+import 'firebase_options.dart'; // ✅ Firebase 設定ファイル
 
 // 各スクリーンのimport
 import 'package:sample_reels/screen/manga.dart';
 import 'package:sample_reels/screen/movie.dart';
 import 'package:sample_reels/screen/voice.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // ✅ Firebase 初期化前に必要
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // ✅ Firebase 設定を適用
+  );
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -34,10 +40,10 @@ class TopPage extends StatefulWidget {
 }
 
 class TopPageState extends State<TopPage> {
-  int _currentIndex = 0; // ✅ 選択中のタブインデックス
-  final PageController _pageController = PageController(); // ✅ ページコントローラー
+  int _currentIndex = 0; 
+  final PageController _pageController = PageController(); 
 
-  // ✅ タブのラベルリスト
+  // タブのラベルリスト
   final List<String> _tabs = ["漫画", "動画", "ボイス"];
 
   @override
@@ -47,7 +53,9 @@ class TopPageState extends State<TopPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // ✅ タブボタン（上部）
+            // -----------------------
+            // タブボタン（上部）
+            // -----------------------
             Row(
               children: List.generate(_tabs.length, (index) {
                 return Expanded(
@@ -70,7 +78,7 @@ class TopPageState extends State<TopPage> {
                           bottom: BorderSide(
                             color: _currentIndex == index
                                 ? Colors.white
-                                : Colors.transparent, // ✅ 選択中のタブの下線
+                                : Colors.transparent,
                             width: 3,
                           ),
                         ),
@@ -82,7 +90,7 @@ class TopPageState extends State<TopPage> {
                           fontSize: 16,
                           fontWeight: _currentIndex == index
                               ? FontWeight.bold
-                              : FontWeight.normal, // ✅ 選択中のタブを強調
+                              : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -91,15 +99,23 @@ class TopPageState extends State<TopPage> {
               }),
             ),
 
-            // ✅ ページビュー（タップで切り替え）
+            // -----------------------
+            // ページビュー
+            // -----------------------
             Expanded(
               child: PageView(
                 controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
+                // 横スクロールを無効化
+                physics: const NeverScrollableScrollPhysics(),
+
+                // ↓ここをコメントアウトすることで、
+                // 「横スクロール時にインデックスを更新する」処理も消せます。
+                // onPageChanged: (index) {
+                //   setState(() {
+                //     _currentIndex = index;
+                //   });
+                // },
+
                 children: const [
                   MangaPage(),
                   MoviePage(),
