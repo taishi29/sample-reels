@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:sample_reels/screen/dmm/dmm_photo.dart';
 import 'package:sample_reels/screen/fanza/fanza_top.dart';
 import 'package:sample_reels/screen/profile.dart';
+import 'package:sample_reels/screen/dmm/dmm_movie.dart';
+import 'package:sample_reels/screen/dmm/dmm_manga.dart';
+import 'package:sample_reels/screen/dmm/dmm_ebook.dart';
+
 
 // componentのimport
 import 'package:sample_reels/component/bottom_bar.dart';
@@ -21,7 +25,7 @@ class _DmmTopPageState extends State<DmmTopPage> {
 
   final PageController _pageController = PageController();
 
-  final List<String> _tabs = ["写真集"];
+  final List<String> _tabs = ["写真集", "動画", "漫画", "電子書籍"];
 
   // 🔹 BottomNavigationBarがタップされた時の処理
   void _onItemTapped(int index) {
@@ -125,6 +129,10 @@ class _DmmTopPageState extends State<DmmTopPage> {
                 physics: const NeverScrollableScrollPhysics(), // 🔹 横スクロールを無効化
                 children: const [
                   DmmPhotoPage(),
+                  DmmMoviePage(),
+                  DmmMangaPage(),
+                  DmmEbookPage(),
+
                 ],
               ),
             ),
