@@ -8,6 +8,9 @@ import 'package:sample_reels/screen/manga.dart';
 import 'package:sample_reels/screen/movie.dart';
 import 'package:sample_reels/screen/voice.dart';
 
+// componentのimport
+import 'package:sample_reels/component/bottom_bar.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ✅ Firebase 初期化前に必要
   await Firebase.initializeApp(
@@ -40,11 +43,20 @@ class TopPage extends StatefulWidget {
 }
 
 class TopPageState extends State<TopPage> {
-  int _currentIndex = 0; 
-  final PageController _pageController = PageController(); 
+  int _currentIndex = 0;
+  final PageController _pageController = PageController();
 
   // タブのラベルリスト
   final List<String> _tabs = ["漫画", "動画", "ボイス"];
+
+  // BottomBar
+  int _selectedIndex = 0; // 現在の選択中のタブのインデックスを管理
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index; // タップされたらインデックスを更新
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +137,10 @@ class TopPageState extends State<TopPage> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavBar(
+        onItemTapped: _onItemTapped, // タブが押されたらこの関数を実行
+        currentIndex: _selectedIndex, // 選択中のタブを渡す
       ),
     );
   }
