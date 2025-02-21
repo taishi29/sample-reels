@@ -4,14 +4,14 @@ import 'package:video_player/video_player.dart';
 import 'package:sample_reels/component/side_buttons.dart'; // いいねボタン用
 import 'package:sample_reels/component/image_slide.dart'; // ✅ 画像スライダー
 
-class MoviePage extends StatefulWidget {
-  const MoviePage({super.key});
+class FanzaMoviePage extends StatefulWidget {
+  const FanzaMoviePage({super.key});
 
   @override
-  State<MoviePage> createState() => MoviePageState();
+  State<FanzaMoviePage> createState() => FanzaMoviePageState();
 }
 
-class MoviePageState extends State<MoviePage> {
+class FanzaMoviePageState extends State<FanzaMoviePage> {
   bool _isLiked = false; // いいね状態を管理する変数
   int _likeCount = 0; // いいねの数を管理する変数
   final PageController _pageController = PageController(); // ✅ 縦スクロール用
@@ -43,7 +43,8 @@ class MoviePageState extends State<MoviePage> {
         print("取得したデータ: ${doc.data()}"); // ✅ デバッグ用
 
         // **Firestore に必要なフィールドがあるかチェック**
-        if (!doc.data().containsKey('サンプル動画URL') || !doc.data().containsKey('サンプル画像')) {
+        if (!doc.data().containsKey('サンプル動画URL') ||
+            !doc.data().containsKey('サンプル画像')) {
           print("⚠️ 必要なフィールドが見つかりません: ${doc.data().keys}");
           continue; // データが不完全ならスキップ
         }
@@ -121,14 +122,18 @@ class MoviePageState extends State<MoviePage> {
                           flex: 1,
                           child: _controllers[index].value.isInitialized
                               ? AspectRatio(
-                                  aspectRatio: _controllers[index].value.aspectRatio,
+                                  aspectRatio:
+                                      _controllers[index].value.aspectRatio,
                                   child: VideoPlayer(_controllers[index]),
                                 )
-                              : const Center(child: CircularProgressIndicator()), // ✅ ローディング表示
+                              : const Center(
+                                  child:
+                                      CircularProgressIndicator()), // ✅ ローディング表示
                         ),
                         Expanded(
                           flex: 2,
-                          child: ImageSlider(imageUrls: imageSlides[index]), // ✅ 画像スライダー
+                          child: ImageSlider(
+                              imageUrls: imageSlides[index]), // ✅ 画像スライダー
                         ),
                       ],
                     ),

@@ -3,14 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sample_reels/component/side_buttons.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
-class MangaPage extends StatefulWidget {
-  const MangaPage({Key? key}) : super(key: key);
+class FanzaMangaPage extends StatefulWidget {
+  const FanzaMangaPage({Key? key}) : super(key: key);
 
   @override
-  State<MangaPage> createState() => MangaPageState();
+  State<FanzaMangaPage> createState() => FanzaMangaPageState();
 }
 
-class MangaPageState extends State<MangaPage> {
+class FanzaMangaPageState extends State<FanzaMangaPage> {
   bool _isLiked = false;
   int _likeCount = 0;
 

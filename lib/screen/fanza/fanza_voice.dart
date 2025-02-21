@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class VoicePage extends StatelessWidget {
-  const VoicePage({super.key});
+class FanzaVoicePage extends StatelessWidget {
+  const FanzaVoicePage({super.key});
 
   @override
   Widget build(BuildContext context) {
