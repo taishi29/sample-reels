@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+
+// 各スクリーンのimport
 import 'package:sample_reels/screen/dmm/dmm_photo.dart';
 import 'package:sample_reels/screen/fanza/fanza_top.dart';
+import 'package:sample_reels/screen/profile.dart';
+
+// componentのimport
 import 'package:sample_reels/component/bottom_bar.dart';
 
 class DmmTopPage extends StatefulWidget {
@@ -33,7 +38,22 @@ class _DmmTopPageState extends State<DmmTopPage> {
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 500), // アニメーション時間
+          transitionDuration: const Duration(milliseconds: 250), // アニメーション時間
+        ),
+      );
+    } else if (index == 3) {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const ProfilePage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 125), // アニメーション時間
         ),
       );
     } else {
