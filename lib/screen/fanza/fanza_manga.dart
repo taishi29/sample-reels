@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:sample_reels/component/side_buttons.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
-class MangaPage extends StatefulWidget {
-  const MangaPage({super.key});
+class FanzaMangaPage extends StatefulWidget {
+  const FanzaMangaPage({super.key});
 
   @override
-  State<MangaPage> createState() => MangaPageState();
+  State<FanzaMangaPage> createState() => FanzaMangaPageState();
 }
 
-class MangaPageState extends State<MangaPage> {
+class FanzaMangaPageState extends State<FanzaMangaPage> {
   bool _isLiked = false;
   int _likeCount = 0;
   final PageController _verticalPageController = PageController(); // ✅ 縦スクロール管理
@@ -25,10 +25,7 @@ class MangaPageState extends State<MangaPage> {
       'https://doujin-assets.dmm.co.jp/digital/comic/d_524736/d_524736jp-004.jpg',
     ],
     [
-      'https://doujin-assets.dmm.co.jp/digital/comic/d_524737/d_524737jp-001.jpg',
-      'https://doujin-assets.dmm.co.jp/digital/comic/d_524737/d_524737jp-002.jpg',
-      'https://doujin-assets.dmm.co.jp/digital/comic/d_524737/d_524737jp-003.jpg',
-      'https://doujin-assets.dmm.co.jp/digital/comic/d_524737/d_524737jp-004.jpg',
+      'https://ebook-assets.dmm.co.jp/digital/e-book/b915awnmg01130/b915awnmg01130pl.jpg',
     ],
   ];
 
