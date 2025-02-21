@@ -1,2 +1,0 @@
-C:/SampleReels/sample_reels/android/app/.cxx/Debug/32l455i3/x86/CMakeFiles/edit_cache.dir
-C:/SampleReels/sample_reels/android/app/.cxx/Debug/32l455i3/x86/CMakeFiles/rebuild_cache.dir

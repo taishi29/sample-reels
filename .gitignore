@@ -60,3 +60,8 @@ linux/flutter/generated_plugins.cmake
 macos/Flutter/GeneratedPluginRegistrant.swift
 windows/flutter/generated_plugin_registrant.*
 windows/flutter/generated_plugins.cmake
+
+
+
+# Android NDK Build cache (不要なビルドキャッシュ)
+android/app/.cxx/
