@@ -35,7 +35,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
       var snapshot = await FirebaseFirestore.instance
           .collection('Products')
           .doc('m9BJjrgbEY3UW6sARIXF') // ✅ 固定のドキュメントID（プロジェクトに応じて変更）
-          .collection('DmmVideo')
+          .collection('FanzaMov')
           .get();
 
       // 取得したドキュメントをループ処理
