@@ -150,11 +150,6 @@ class DmmMoviePageState extends State<DmmMoviePage> {
     });
   }
 
-  void _seekTo(double seconds) {
-    final controller = _controllers[_currentIndex];
-    controller.seekTo(Duration(seconds: seconds.toInt()));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,8 +169,6 @@ class DmmMoviePageState extends State<DmmMoviePage> {
                 });
               },
               itemBuilder: (context, index) {
-                final controller = _controllers[index];
-
                 return GestureDetector(
                   onTap: _togglePlayPause,
                   child: Stack(
