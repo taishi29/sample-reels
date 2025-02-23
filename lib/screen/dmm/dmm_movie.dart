@@ -12,80 +12,74 @@ class DmmMoviePage extends StatefulWidget {
 }
 
 class DmmMoviePageState extends State<DmmMoviePage> {
-  bool _isLiked = false; // いいね状態を管理する変数
-  int _likeCount = 0; // いいねの数を管理する変数
-  final PageController _pageController = PageController(); // ✅ 縦スクロール用
-  int _currentIndex = 0; // ✅ 現在の動画のインデックス
+  bool _isLiked = false;
+  int _likeCount = 0;
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
 
-  // Firestore から取得したデータを格納するリスト
-  List<String> videoUrls = []; // 動画URLリスト
-  List<List<String>> imageSlides = []; // 画像スライドリスト
-  List<VideoPlayerController> _controllers = []; // 動画コントローラーリスト
+  List<String> videoUrls = [];
+  List<List<String>> imageSlides = [];
+  List<VideoPlayerController> _controllers = [];
+  bool _isMuted = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchVideosFromFirestore(); // Firestore からデータを取得
+    _fetchVideosFromFirestore();
   }
 
-  // **Firestore から動画データを取得**
   Future<void> _fetchVideosFromFirestore() async {
     try {
-      // Firestore から `FanzaMov` コレクションのデータを取得
       var snapshot = await FirebaseFirestore.instance
           .collection('Products')
-          .doc('m9BJjrgbEY3UW6sARIXF') // ✅ 固定のドキュメントID（プロジェクトに応じて変更）
+          .doc('m9BJjrgbEY3UW6sARIXF')
           .collection('DmmVideo')
           .get();
 
-      // 取得したドキュメントをループ処理
       for (var doc in snapshot.docs) {
-        print("取得したデータ: ${doc.data()}"); // ✅ デバッグ用
+        print("取得したデータ: ${doc.data()}");
 
-        // **Firestore に必要なフィールドがあるかチェック**
         if (!doc.data().containsKey('サンプル動画URL') ||
             !doc.data().containsKey('サンプル画像')) {
           print("⚠️ 必要なフィールドが見つかりません: ${doc.data().keys}");
-          continue; // データが不完全ならスキップ
+          continue;
         }
 
-        // Firestore から動画URL & 画像URLを取得
         String videoUrl = doc['サンプル動画URL'];
         List<String> images = List<String>.from(doc['サンプル画像']);
 
-        // **動画コントローラーの作成と初期化**
         var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
-        await controller.initialize(); // ✅ 初期化処理（非同期）
+        await controller.initialize();
 
-        // **UI を更新**
         setState(() {
-          videoUrls.add(videoUrl); // ✅ 取得した動画URLをリストに追加
-          imageSlides.add(images); // ✅ 取得した画像リストを追加
-          _controllers.add(controller); // ✅ 動画コントローラーをリストに追加
+          videoUrls.add(videoUrl);
+          imageSlides.add(images);
+          _controllers.add(controller);
 
-          // 最初の動画は自動再生 & ループ設定
           if (_controllers.length == 1) {
             controller.play();
             controller.setLooping(true);
           }
         });
+
+        controller.addListener(() {
+          setState(() {});
+        });
       }
     } catch (e) {
-      print("Error fetching videos: $e"); // エラーハンドリング
+      print("Error fetching videos: $e");
     }
   }
 
   @override
   void dispose() {
-    // **メモリ解放**
     for (var controller in _controllers) {
-      controller.dispose(); // ✅ 各動画コントローラーを破棄
+      controller.dispose();
     }
-    _pageController.dispose(); // ✅ スクロールのコントローラーを破棄
+    _pageController.dispose();
     super.dispose();
   }
 
-  // **いいねボタンの処理**
   void _toggleLike() {
     setState(() {
       _isLiked = !_isLiked;
@@ -93,58 +87,139 @@ class DmmMoviePageState extends State<DmmMoviePage> {
     });
   }
 
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+      _controllers[_currentIndex].setVolume(_isMuted ? 0 : 1);
+    });
+  }
+
+  void _togglePlayPause() {
+    setState(() {
+      if (_controllers[_currentIndex].value.isPlaying) {
+        _controllers[_currentIndex].pause();
+      } else {
+        _controllers[_currentIndex].play();
+      }
+    });
+  }
+
+  void _seekTo(double seconds) {
+    final controller = _controllers[_currentIndex];
+    controller.seekTo(Duration(seconds: seconds.toInt()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
-      // **データ取得中はローディング表示**
       body: videoUrls.isEmpty
-          ? const Center(child: CircularProgressIndicator()) // ✅ データ取得中
+          ? const Center(child: CircularProgressIndicator())
           : PageView.builder(
               controller: _pageController,
-              scrollDirection: Axis.vertical, // ✅ 縦スクロール
-              itemCount: videoUrls.length, // ✅ Firestore から取得したデータ数
+              scrollDirection: Axis.vertical,
+              itemCount: videoUrls.length,
               onPageChanged: (index) {
                 setState(() {
-                  _controllers[_currentIndex].pause(); // ✅ 前の動画を停止
+                  _controllers[_currentIndex].pause();
                   _currentIndex = index;
-                  _controllers[_currentIndex].play(); // ✅ 新しい動画を再生
+                  _controllers[_currentIndex].play();
+                  _controllers[_currentIndex].setVolume(_isMuted ? 0 : 1);
                 });
               },
               itemBuilder: (context, index) {
-                return Stack(
-                  children: [
-                    // **動画 + 画像スライドのレイアウト**
-                    Column(
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: _controllers[index].value.isInitialized
-                              ? AspectRatio(
-                                  aspectRatio:
-                                      _controllers[index].value.aspectRatio,
-                                  child: VideoPlayer(_controllers[index]),
-                                )
-                              : const Center(
-                                  child:
-                                      CircularProgressIndicator()), // ✅ ローディング表示
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: ImageSlider(
-                              imageUrls: imageSlides[index]), // ✅ 画像スライダー
-                        ),
-                      ],
-                    ),
+                final controller = _controllers[index];
 
-                    // **いいねボタン（右下）**
-                    RightSideButtons(
-                      onLikePressed: _toggleLike,
-                      isLiked: _isLiked,
-                      likeCount: _likeCount,
-                    ),
-                  ],
+                return GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Stack(
+                    children: [
+                      Column(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: _controllers[index].value.isInitialized
+                                ? Stack(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: _controllers[index]
+                                            .value
+                                            .aspectRatio,
+                                        child: VideoPlayer(_controllers[index]),
+                                      ),
+
+                                      // **右下端の消音ボタン**
+                                      Positioned(
+                                        right: 16,
+                                        bottom: 16,
+                                        child: IconButton(
+                                          icon: Icon(
+                                            _isMuted
+                                                ? Icons.volume_off
+                                                : Icons.volume_up,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                          onPressed: _toggleMute,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: ImageSlider(imageUrls: imageSlides[index]),
+                          ),
+                        ],
+                      ),
+
+                      // **右側のいいねボタン**
+                      RightSideButtons(
+                        onLikePressed: _toggleLike,
+                        isLiked: _isLiked,
+                        likeCount: _likeCount,
+                      ),
+
+                      // **シークバー（つまみなし）**
+                      Positioned(
+                        bottom: 0, // **少し下に調整**
+                        left: 16,
+                        right: 16,
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 0.0),
+                            overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 0.0),
+                          ),
+                          child: Slider(
+                            activeColor: Colors.pink[200],
+                            inactiveColor: Colors.pink[50],
+                            min: 0,
+                            max: controller.value.duration.inSeconds.toDouble(),
+                            value:
+                                controller.value.position.inSeconds.toDouble(),
+                            onChanged: (value) {
+                              _seekTo(value);
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // **再生/停止ボタン（動画が停止中のみ表示）**
+                      if (!controller.value.isPlaying)
+                        Center(
+                          child: Icon(
+                            Icons.play_circle_outline,
+                            size: 80,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                    ],
+                  ),
                 );
               },
             ),
