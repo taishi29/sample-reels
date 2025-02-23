@@ -21,8 +21,6 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
   List<List<String>> imageSlides = [];
   List<VideoPlayerController> _controllers = [];
   bool _isMuted = false;
-  bool _showControls = false;
-  double _opacity = 0.0; // ✅ フェードアウト用の透明度
 
   @override
   void initState() {
@@ -209,7 +207,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                           child: Icon(
                             Icons.play_circle_outline,
                             size: 80,
-                            color: Colors.white.withOpacity(0.7), // ✅ 半透明にする
+                            color: Colors.white.withOpacity(0.7),
                           ),
                         ),
                     ],
