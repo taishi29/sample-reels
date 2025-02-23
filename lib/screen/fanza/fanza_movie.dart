@@ -152,14 +152,10 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                       ],
                     ),
                     // **右側のいいねボタン**
-                    Positioned(
-                      right: 16,
-                      bottom: 80,
-                      child: RightSideButtons(
-                        onLikePressed: _toggleLike,
-                        isLiked: _isLiked,
-                        likeCount: _likeCount,
-                      ),
+                    RightSideButtons(
+                      onLikePressed: _toggleLike,
+                      isLiked: _isLiked,
+                      likeCount: _likeCount,
                     ),
                   ],
                 );
