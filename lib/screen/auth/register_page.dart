@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sample_reels/component/auth_service.dart';
+import 'package:sample_reels/screen/profile.dart'; // 遷移先をimport
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -36,6 +37,12 @@ class _RegisterPageState extends State<RegisterPage> {
     final user = await _authService.registerUser(email, password);
     if (user != null) {
       print("✅ ユーザー登録成功: ${user.uid}");
+
+      // 成功したら `HomePage` に遷移
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ProfilePage()),
+      );
     } else {
       print("❌ ユーザー登録に失敗しました");
     }
@@ -52,6 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
+            mainAxisSize: MainAxisSize.min, // 真ん中に配置
             children: [
               TextField(
                 controller: _emailController,
