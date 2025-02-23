@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sample_reels/screen/dmm/dmm_top.dart';
+import 'package:sample_reels/screen/rogin.dart';
 import 'firebase_options.dart';
 import 'package:sample_reels/screen/auth/register_page.dart'; // ✅ ユーザー登録画面をインポート
 
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      home: RegisterPage(), // ✅ ユーザー登録画面を最初に表示
+      home: LoginPage(), // ✅ ユーザー登録画面を最初に表示
     );
   }
 }
