@@ -45,7 +45,7 @@ class RightSideButtonsState extends State<RightSideButtons> {
               children: [
                 Icon(
                   widget.isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: widget.isLiked ? Colors.red : Colors.white,
+                  color: widget.isLiked ? Colors.pinkAccent : Colors.white,
                   size: 40,
                 ),
                 Text(
