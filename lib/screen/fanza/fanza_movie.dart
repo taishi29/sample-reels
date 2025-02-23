@@ -19,6 +19,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
 
   List<String> videoUrls = [];
   List<List<String>> imageSlides = [];
+  List<String> shareUrls = [];
   List<VideoPlayerController> _controllers = [];
   bool _isMuted = false;
 
@@ -28,6 +29,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
     _fetchVideosFromFirestore();
   }
 
+  // Firestoreから動画データを取得し、リストに追加する
   Future<void> _fetchVideosFromFirestore() async {
     try {
       var snapshot = await FirebaseFirestore.instance
@@ -37,8 +39,10 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
           .get();
 
       for (var doc in snapshot.docs) {
-        String videoUrl = doc['サンプル動画URL'];
-        List<String> images = List<String>.from(doc['サンプル画像']);
+        String videoUrl = doc['サンプル動画URL']; // Firestoreから動画URLを取得
+        List<String> images =
+            List<String>.from(doc['サンプル画像']); // Firestoreからサンプル画像を取得
+        String productPageUrl = doc['商品ページURL']; // 商品ページURLを取得
 
         var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
         await controller.initialize();
@@ -46,6 +50,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
         setState(() {
           videoUrls.add(videoUrl);
           imageSlides.add(images);
+          shareUrls.add(productPageUrl); // Firestoreから取得した商品ページURLをリストに追加
           _controllers.add(controller);
 
           if (_controllers.length == 1) {
@@ -54,7 +59,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
           }
         });
 
-        // **リスナーを追加して、シークバーをリアルタイム更新**
+        // 動画のシークバーをリアルタイムで更新するリスナーを追加
         controller.addListener(() {
           setState(() {});
         });
@@ -173,6 +178,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                         onLikePressed: _toggleLike,
                         isLiked: _isLiked,
                         likeCount: _likeCount,
+                        shereUrl: shareUrls[index], // Firestoreから取得したURLを設定
                       ),
 
                       // **シークバー（つまみなし）**

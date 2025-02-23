@@ -31,6 +31,8 @@ class DmmEbookPageState extends State<DmmEbookPage> {
   // 例: [[imgA_1.jpg, imgA_2.jpg], [imgB_1.jpg, imgB_2.jpg], ...]
   List<List<String>> _mangaUrls = [];
 
+  List<String> shareUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -62,14 +64,16 @@ class DmmEbookPageState extends State<DmmEbookPage> {
 
         // 「サンプル画像」をList<String>として取り出す
         final List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['url']; // 商品ページURLを取得
+
         // 作品ごとに画像リストをnewMangaUrlsへ追加
         newMangaUrls.add(images);
-      }
 
-      // setStateで状態を更新（画面再描画）
-      setState(() {
-        _mangaUrls = newMangaUrls;
-      });
+        setState(() {
+          _mangaUrls = newMangaUrls;
+          shareUrls.add(productPageUrl);
+        });
+      }
     } catch (e) {
       print("エラーが発生しました: $e");
     }
@@ -186,8 +190,9 @@ class DmmEbookPageState extends State<DmmEbookPage> {
               // ----------------------
               RightSideButtons(
                 onLikePressed: _toggleLike, // いいねボタン押下時の処理
-                isLiked: _isLiked,         // いいね状態
-                likeCount: _likeCount,     // いいね数
+                isLiked: _isLiked, // いいね状態
+                likeCount: _likeCount, // いいね数
+                shereUrl: shareUrls[index],
               ),
             ],
           );

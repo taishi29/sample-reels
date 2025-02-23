@@ -32,6 +32,8 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
   /// 例: [[photo1.jpg, photo2.jpg, ...], [photo1.jpg, photo2.jpg, ...], ...]
   List<List<String>> _photoUrls = [];
 
+  List<String> shareUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -62,14 +64,16 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
 
         // 「サンプル画像」をList<String>として取得
         final List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['url']; // 商品ページURLを取得
+
         // 写真集1作品分のページURLリストを追加
         newPhotoUrls.add(images);
-      }
 
-      // 取得したリストを状態にセット → 再描画
-      setState(() {
-        _photoUrls = newPhotoUrls;
-      });
+        setState(() {
+          _photoUrls = newPhotoUrls;
+          shareUrls.add(productPageUrl);
+        });
+      }
     } catch (e) {
       print("エラーが発生しました: $e");
     }
@@ -176,6 +180,7 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
                 onLikePressed: _toggleLike,
                 isLiked: _isLiked,
                 likeCount: _likeCount,
+                shereUrl: shareUrls[index],
               ),
             ],
           );

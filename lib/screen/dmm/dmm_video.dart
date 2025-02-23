@@ -22,6 +22,8 @@ class DmmMoviePageState extends State<DmmMoviePage> {
   List<List<String>> imageSlides = []; // 画像スライドリスト
   List<VideoPlayerController> _controllers = []; // 動画コントローラーリスト
 
+  List<String> shareUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +54,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
         // Firestore から動画URL & 画像URLを取得
         String videoUrl = doc['サンプル動画URL'];
         List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['url']; // 商品ページURLを取得
 
         // **動画コントローラーの作成と初期化**
         var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
@@ -62,6 +65,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
           videoUrls.add(videoUrl); // ✅ 取得した動画URLをリストに追加
           imageSlides.add(images); // ✅ 取得した画像リストを追加
           _controllers.add(controller); // ✅ 動画コントローラーをリストに追加
+          shareUrls.add(productPageUrl);
 
           // 最初の動画は自動再生 & ループ設定
           if (_controllers.length == 1) {
@@ -143,6 +147,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
                       onLikePressed: _toggleLike,
                       isLiked: _isLiked,
                       likeCount: _likeCount,
+                      shereUrl: shareUrls[index],
                     ),
                   ],
                 );

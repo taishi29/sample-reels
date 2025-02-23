@@ -16,6 +16,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
   int _likeCount = 0;
   final PageController _pageController = PageController();
   int _currentIndex = 0;
+  List<String> shareUrls = [];
 
   List<String> videoUrls = [];
   List<List<String>> imageSlides = [];
@@ -47,6 +48,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
 
         String videoUrl = doc['サンプル動画URL'];
         List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['url']; // 商品ページURLを取得
 
         var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
         await controller.initialize();
@@ -55,6 +57,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
           videoUrls.add(videoUrl);
           imageSlides.add(images);
           _controllers.add(controller);
+          shareUrls.add(productPageUrl);
 
           if (_controllers.length == 1) {
             controller.play();
@@ -181,6 +184,7 @@ class DmmMoviePageState extends State<DmmMoviePage> {
                         onLikePressed: _toggleLike,
                         isLiked: _isLiked,
                         likeCount: _likeCount,
+                        shereUrl: shareUrls[index],
                       ),
 
                       // **シークバー（つまみなし）**

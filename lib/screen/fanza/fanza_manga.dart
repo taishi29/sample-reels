@@ -27,6 +27,8 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
   // 例: [[page1.jpg, page2.jpg, ...], [page1.jpg, page2.jpg, ...], ...]
   List<List<String>> _mangaUrls = [];
 
+  List<String> shareUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -54,14 +56,16 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
 
         // Firestore から「サンプル画像」(List<String>) を取得
         List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['商品ページURL']; // 商品ページURLを取得
+
         // 作品ごとのリストとして追加
         newMangaUrls.add(images);
+        // setState で反映
+        setState(() {
+          _mangaUrls = newMangaUrls;
+          shareUrls.add(productPageUrl);
+        });
       }
-
-      // setState で反映
-      setState(() {
-        _mangaUrls = newMangaUrls;
-      });
     } catch (e) {
       print("エラーが発生しました: $e");
     }
@@ -95,7 +99,7 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
         itemCount: _mangaUrls.length,
         onPageChanged: (index) {
           setState(() {
-            _currentIndex = index; 
+            _currentIndex = index;
             _currentPage = 0; // 新しい作品に切り替わったら横スクロールページをリセット
           });
         },
@@ -165,6 +169,7 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
                 onLikePressed: _toggleLike,
                 isLiked: _isLiked,
                 likeCount: _likeCount,
+                shereUrl: shareUrls[index],
               ),
             ],
           );
