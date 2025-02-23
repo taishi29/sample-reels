@@ -32,6 +32,8 @@ class DmmMangaPageState extends State<DmmMangaPage> {
   /// 例: [[page1.jpg, page2.jpg, ...], [page1.jpg, page2.jpg, ...], ...]
   List<List<String>> _mangaUrls = [];
 
+  List<String> shareUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -66,12 +68,13 @@ class DmmMangaPageState extends State<DmmMangaPage> {
         final List<String> images = List<String>.from(doc['サンプル画像']);
         // マンガ1作品分のページURLリストを追加
         newMangaUrls.add(images);
-      }
+        String productPageUrl = doc['url']; // 商品ページURLを取得
 
-      // 取得したリストをセットして再描画
-      setState(() {
-        _mangaUrls = newMangaUrls;
-      });
+        setState(() {
+          _mangaUrls = newMangaUrls;
+          shareUrls.add(productPageUrl);
+        });
+      }
     } catch (e) {
       print("エラーが発生しました: $e");
     }
@@ -104,7 +107,7 @@ class DmmMangaPageState extends State<DmmMangaPage> {
       body: PageView.builder(
         controller: _verticalPageController,
         scrollDirection: Axis.vertical, // 縦方向にスクロール
-        itemCount: _mangaUrls.length,    // 作品数
+        itemCount: _mangaUrls.length, // 作品数
         onPageChanged: (index) {
           // 縦スクロールで別作品に切り替わった時の処理
           setState(() {
@@ -179,8 +182,9 @@ class DmmMangaPageState extends State<DmmMangaPage> {
               // 画面右下にいいねボタンなどを表示（SideButtonsは独自ウィジェット）
               RightSideButtons(
                 onLikePressed: _toggleLike, // いいねボタンタップ時の処理
-                isLiked: _isLiked,         // 現在のいいね状態
-                likeCount: _likeCount,     // いいね数
+                isLiked: _isLiked, // 現在のいいね状態
+                likeCount: _likeCount, // いいね数
+                shereUrl: shareUrls[index],
               ),
             ],
           );
