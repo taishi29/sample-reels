@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:video_player/video_player.dart';
-import 'package:sample_reels/component/side_buttons.dart'; // いいねボタン用
-import 'package:sample_reels/component/image_slide.dart'; // ✅ 画像スライダー
+import 'package:sample_reels/component/side_buttons.dart';
+import 'package:sample_reels/component/image_slide.dart';
 
 class DmmMoviePage extends StatefulWidget {
   const DmmMoviePage({super.key});
@@ -12,15 +12,15 @@ class DmmMoviePage extends StatefulWidget {
 }
 
 class DmmMoviePageState extends State<DmmMoviePage> {
-  bool _isLiked = false;
-  int _likeCount = 0;
-  final PageController _pageController = PageController();
-  int _currentIndex = 0;
-  List<String> shareUrls = [];
-
+  List<bool> isLikedList = []; // 各動画ごとの「いいね」状態
+  List<int> likeCountList = []; // 各動画ごとの「いいね」数
   List<String> videoUrls = [];
   List<List<String>> imageSlides = [];
+  List<String> shareUrls = [];
+  List<String> docIds = []; // Firestore のドキュメントIDリスト
   List<VideoPlayerController> _controllers = [];
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
   bool _isMuted = false;
 
   @override
@@ -37,9 +37,13 @@ class DmmMoviePageState extends State<DmmMoviePage> {
           .collection('DmmVideo')
           .get();
 
-      for (var doc in snapshot.docs) {
-        print("取得したデータ: ${doc.data()}");
+      final newVideoUrls = <String>[];
+      final newImageSlides = <List<String>>[];
+      final newLikeCountList = <int>[];
+      final newIsLikedList = <bool>[];
+      final newDocIds = <String>[];
 
+      for (var doc in snapshot.docs) {
         if (!doc.data().containsKey('サンプル動画URL') ||
             !doc.data().containsKey('サンプル画像')) {
           print("⚠️ 必要なフィールドが見つかりません: ${doc.data().keys}");
@@ -48,16 +52,27 @@ class DmmMoviePageState extends State<DmmMoviePage> {
 
         String videoUrl = doc['サンプル動画URL'];
         List<String> images = List<String>.from(doc['サンプル画像']);
-        String productPageUrl = doc['url']; // 商品ページURLを取得
+        String productPageUrl = doc['url']; // 商品ページURL
+        int goodCount = doc['good'] ?? 0;
+        String docId = doc.id;
 
         var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
         await controller.initialize();
 
+        newVideoUrls.add(videoUrl);
+        newImageSlides.add(images);
+        newLikeCountList.add(goodCount);
+        newIsLikedList.add(false); // 初期状態は false
+        newDocIds.add(docId);
+
         setState(() {
-          videoUrls.add(videoUrl);
-          imageSlides.add(images);
-          _controllers.add(controller);
+          videoUrls = newVideoUrls;
+          imageSlides = newImageSlides;
+          likeCountList = newLikeCountList;
+          isLikedList = newIsLikedList;
+          docIds = newDocIds;
           shareUrls.add(productPageUrl);
+          _controllers.add(controller);
 
           if (_controllers.length == 1) {
             controller.play();
@@ -83,11 +98,39 @@ class DmmMoviePageState extends State<DmmMoviePage> {
     super.dispose();
   }
 
-  void _toggleLike() {
+  void _toggleLike(String docId, int index) async {
     setState(() {
-      _isLiked = !_isLiked;
-      _likeCount += _isLiked ? 1 : -1;
+      isLikedList[index] = !isLikedList[index];
+      likeCountList[index] += isLikedList[index] ? 1 : -1;
     });
+
+    try {
+      var docRef = FirebaseFirestore.instance
+          .collection('Products')
+          .doc('m9BJjrgbEY3UW6sARIXF')
+          .collection('DmmVideo')
+          .doc(docId);
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        var snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
+
+        int currentGood = snapshot['good'] ?? 0;
+        int newGood = isLikedList[index] ? currentGood + 1 : currentGood - 1;
+
+        transaction.update(docRef, {'good': newGood});
+      });
+
+      // Firestore にユーザーのいいね状態を保存
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc('userId') // TODO: 実際のユーザーIDを設定
+          .collection('LikedVideos')
+          .doc(docId)
+          .set({'liked': isLikedList[index]});
+    } catch (e) {
+      print("Error updating good count: $e");
+    }
   }
 
   void _toggleMute() {
@@ -150,8 +193,6 @@ class DmmMoviePageState extends State<DmmMoviePage> {
                                             .aspectRatio,
                                         child: VideoPlayer(_controllers[index]),
                                       ),
-
-                                      // **右下端の消音ボタン**
                                       Positioned(
                                         right: 16,
                                         bottom: 16,
@@ -178,50 +219,13 @@ class DmmMoviePageState extends State<DmmMoviePage> {
                           ),
                         ],
                       ),
-
-                      // **右側のいいねボタン**
                       RightSideButtons(
-                        onLikePressed: _toggleLike,
-                        isLiked: _isLiked,
-                        likeCount: _likeCount,
+                        onLikePressed: () => _toggleLike(docIds[index], index),
+                        isLiked: isLikedList[index],
+                        likeCount: likeCountList[index],
                         shereUrl: shareUrls[index],
+                        docId: docIds[index],
                       ),
-
-                      // **シークバー（つまみなし）**
-                      Positioned(
-                        bottom: 0, // **少し下に調整**
-                        left: 16,
-                        right: 16,
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 0.0),
-                            overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 0.0),
-                          ),
-                          child: Slider(
-                            activeColor: Colors.pink[200],
-                            inactiveColor: Colors.pink[50],
-                            min: 0,
-                            max: controller.value.duration.inSeconds.toDouble(),
-                            value:
-                                controller.value.position.inSeconds.toDouble(),
-                            onChanged: (value) {
-                              _seekTo(value);
-                            },
-                          ),
-                        ),
-                      ),
-
-                      // **再生/停止ボタン（動画が停止中のみ表示）**
-                      if (!controller.value.isPlaying)
-                        Center(
-                          child: Icon(
-                            Icons.play_circle_outline,
-                            size: 80,
-                            color: Colors.white.withOpacity(0.7),
-                          ),
-                        ),
                     ],
                   ),
                 );

@@ -7,6 +7,7 @@ class RightSideButtons extends StatefulWidget {
   final bool isLiked;
   final int likeCount;
   final String shereUrl; // ✅ 追加: シェアする動画のURL
+  final String docId;
 
   const RightSideButtons({
     super.key,
@@ -14,6 +15,7 @@ class RightSideButtons extends StatefulWidget {
     required this.isLiked,
     required this.likeCount,
     required this.shereUrl, // ✅ 必須パラメータに追加
+    required this.docId,
   });
 
   @override
