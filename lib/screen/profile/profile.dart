@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 // スクリーンのimport
 import 'package:sample_reels/screen/dmm/dmm_top.dart';
 import 'package:sample_reels/screen/fanza/fanza_top.dart';
-import 'package:sample_reels/screen/profileedit.dart'; // 🔹 profileedit.dart をインポート
+import 'package:sample_reels/screen/profile/profile_edit/profile_edit.dart'; // 🔹 profileedit.dart をインポート
 // componentのimport
 import 'package:sample_reels/component/bottom_bar.dart';
 
@@ -18,7 +18,6 @@ class ProfilePage extends StatefulWidget {
 class ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 3; // 🔹 BottomNavigationBar のインデックス
   String name = "Loading..."; // 初期値
-  String introduction = "Loading..."; // 初期値
 
   @override
   void initState() {
@@ -26,32 +25,29 @@ class ProfilePageState extends State<ProfilePage> {
     _fetchUserData(); // Firestoreからデータを取得
   }
 
-  // 🔹 Firestore から `Uid` に対応する `name` と `introduction` を取得
+  // 🔹 Firestore から `Uid` に対応する `name` を取得
   Future<void> _fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String uid = user.uid;
 
       try {
-        DocumentSnapshot userDoc = 
-            await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+        DocumentSnapshot userDoc =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
         if (userDoc.exists) {
           setState(() {
             name = userDoc['name'] ?? "No Name";
-            introduction = userDoc['introduction'] ?? "No Introduction";
           });
         } else {
           setState(() {
             name = "User not found";
-            introduction = "";
           });
         }
       } catch (e) {
         print("🔥 Firestoreエラー: $e");
         setState(() {
           name = "Error loading";
-          introduction = "";
         });
       }
     }
@@ -124,17 +120,7 @@ class ProfilePageState extends State<ProfilePage> {
                 'https://pbs.twimg.com/profile_images/1476938674612805637/Z9-fGmey_400x400.jpg'),
             radius: 40,
           ),
-          const SizedBox(height: 10),
-          // 🔹 Firestore から取得した `introduction` を表示
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              introduction,
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 30),
           // プロフィール編集ボタン
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -142,13 +128,15 @@ class ProfilePageState extends State<ProfilePage> {
               foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              // 🔹 編集ページに遷移 & 戻ってきたら `fetchUserData()` を実行
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ProfileEditPage(),
                 ),
               );
+              _fetchUserData(); // 🔹 プロフィール画面に戻ったらデータを再取得
             },
             child: const Text("プロフィールを編集"),
           ),

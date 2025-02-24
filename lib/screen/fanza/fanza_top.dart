@@ -5,7 +5,7 @@ import 'package:sample_reels/screen/dmm/dmm_top.dart';
 import 'package:sample_reels/screen/fanza/fanza_manga.dart';
 import 'package:sample_reels/screen/fanza/fanza_movie.dart';
 import 'package:sample_reels/screen/fanza/fanza_voice.dart';
-import 'package:sample_reels/screen/profile.dart';
+import 'package:sample_reels/screen/profile/profile.dart';
 
 // componentのimport
 import 'package:sample_reels/component/bottom_bar.dart';

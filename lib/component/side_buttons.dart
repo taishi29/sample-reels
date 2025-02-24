@@ -55,7 +55,9 @@ class RightSideButtonsState extends State<RightSideButtons> {
               children: [
                 Icon(
                   widget.isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: widget.isLiked ? Colors.pinkAccent : Colors.white,
+                  color: widget.isLiked
+                      ? Colors.pinkAccent
+                      : Colors.pink[100], // ✅ 変更
                   size: 40,
                 ),
                 Text(
@@ -69,11 +71,10 @@ class RightSideButtonsState extends State<RightSideButtons> {
 
           // ✅ コメントボタン（押すとモーダルが開く）
           GestureDetector(
-            onTap: () =>
-                _showCommentSheet(context), // ✅ `showModalBottomSheet` を実行
+            onTap: () => _showCommentSheet(context),
             child: Column(
               children: [
-                const Icon(Icons.comment, color: Colors.white, size: 40),
+                Icon(Icons.comment, color: Colors.pink[100], size: 40), // ✅ 変更
                 const Text("コメント",
                     style: TextStyle(color: Colors.white, fontSize: 14)),
               ],
@@ -84,7 +85,8 @@ class RightSideButtonsState extends State<RightSideButtons> {
           // ブックマークボタン
           Column(
             children: [
-              Icon(Icons.bookmark_border, color: Colors.white, size: 40),
+              Icon(Icons.bookmark_border,
+                  color: Colors.pink[100], size: 40), // ✅ 変更
               Text("0", style: TextStyle(color: Colors.white, fontSize: 14)),
             ],
           ),
@@ -92,10 +94,11 @@ class RightSideButtonsState extends State<RightSideButtons> {
 
           // ✅ シェアボタン
           GestureDetector(
-            onTap: _shareVideo, // ✅ シェア機能を追加
+            onTap: _shareVideo,
             child: Column(
               children: [
-                Icon(Icons.more_horiz, color: Colors.white, size: 40),
+                Icon(Icons.more_horiz,
+                    color: Colors.pink[100], size: 40), // ✅ 変更
                 Text("シェア",
                     style: TextStyle(color: Colors.white, fontSize: 14)),
               ],
