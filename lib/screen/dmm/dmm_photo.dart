@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sample_reels/component/side_buttons.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
-/// DMMの写真集ページを表示するStatefulWidget
 class DmmPhotoPage extends StatefulWidget {
   const DmmPhotoPage({Key? key}) : super(key: key);
 
@@ -11,99 +10,117 @@ class DmmPhotoPage extends StatefulWidget {
   State<DmmPhotoPage> createState() => DmmPhotoPageState();
 }
 
-/// DMM写真ページの状態を管理するクラス
 class DmmPhotoPageState extends State<DmmPhotoPage> {
-  /// いいね状態（true = いいね押下中）
-  bool _isLiked = false;
+  List<bool> isLikedList = []; // 各写真集ごとの「いいね」状態
+  List<int> likeCountList = []; // 各写真集ごとの「いいね」数
+  List<List<String>> _photoUrls = []; // Firestore から取得するページ画像
+  List<String> shareUrls = [];
+  List<String> docIds = []; // Firestore のドキュメントIDリスト
 
-  /// いいね数
-  int _likeCount = 0;
-
-  /// 縦スクロールで作品（写真集）を切り替えるためのコントローラ
   final PageController _verticalPageController = PageController();
-
-  /// 現在表示中の作品インデックス（縦スクロール）
   int _currentIndex = 0;
-
-  /// 現在表示中の作品内のページインデックス（横スクロール）
   int _currentPage = 0;
-
-  /// Firestoreから取得した写真集の画像URLを格納するリスト
-  /// 例: [[photo1.jpg, photo2.jpg, ...], [photo1.jpg, photo2.jpg, ...], ...]
-  List<List<String>> _photoUrls = [];
 
   @override
   void initState() {
     super.initState();
-    // ウィジェット生成時にFirestoreからデータを読み込む
     _fetchImagesFromFirestore();
   }
 
-  /// Firestoreから「サンプル画像」フィールドを取得し、_photoUrlsへ格納
+  /// Firestore から「サンプル画像」と「good」フィールドを取得
   Future<void> _fetchImagesFromFirestore() async {
     try {
-      // 'Products'コレクション内の m9BJjrgbEY3UW6sARIXF ドキュメント配下にある
-      // 'DmmPhoto' コレクションを取得（プロジェクトに合わせて修正）
       final snapshot = await FirebaseFirestore.instance
           .collection('Products')
           .doc('m9BJjrgbEY3UW6sARIXF')
           .collection('DmmPhoto')
           .get();
 
-      // 取得結果を一時的に入れるリスト
       final newPhotoUrls = <List<String>>[];
+      final newLikeCountList = <int>[];
+      final newIsLikedList = <bool>[];
+      final newDocIds = <String>[];
 
-      // 各ドキュメントをループし「サンプル画像」フィールドが存在するかチェック
       for (var doc in snapshot.docs) {
-        if (!doc.data().containsKey('サンプル画像')) {
-          print("⚠️ 必要なフィールドが見つかりません: ${doc.data().keys}");
-          continue; // フィールドが無ければスキップ
-        }
+        if (!doc.data().containsKey('サンプル画像')) continue;
 
-        // 「サンプル画像」をList<String>として取得
-        final List<String> images = List<String>.from(doc['サンプル画像']);
-        // 写真集1作品分のページURLリストを追加
+        List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['url']; // 商品ページURL
+        int goodCount = doc['good'] ?? 0;
+        String docId = doc.id;
+
         newPhotoUrls.add(images);
-      }
+        newLikeCountList.add(goodCount);
+        newIsLikedList.add(false); // 初期状態は false
+        newDocIds.add(docId);
 
-      // 取得したリストを状態にセット → 再描画
-      setState(() {
-        _photoUrls = newPhotoUrls;
-      });
+        setState(() {
+          _photoUrls = newPhotoUrls;
+          likeCountList = newLikeCountList;
+          isLikedList = newIsLikedList;
+          shareUrls.add(productPageUrl);
+          docIds = newDocIds;
+        });
+      }
     } catch (e) {
       print("エラーが発生しました: $e");
     }
   }
 
-  /// いいねボタンが押された時の処理
-  void _toggleLike() {
+  /// Firestore の `good` を更新
+  void _toggleLike(String docId, int index) async {
     setState(() {
-      _isLiked = !_isLiked;
-      _likeCount += _isLiked ? 1 : -1;
+      isLikedList[index] = !isLikedList[index];
+      likeCountList[index] += isLikedList[index] ? 1 : -1;
     });
+
+    try {
+      var docRef = FirebaseFirestore.instance
+          .collection('Products')
+          .doc('m9BJjrgbEY3UW6sARIXF')
+          .collection('DmmPhoto')
+          .doc(docId);
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        var snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
+
+        int currentGood = snapshot['good'] ?? 0;
+        int newGood = isLikedList[index] ? currentGood + 1 : currentGood - 1;
+
+        transaction.update(docRef, {'good': newGood});
+      });
+
+      // Firestore にユーザーのいいね状態を保存
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc('userId') // TODO: 実際のユーザーIDを設定
+          .collection('LikedPhotos')
+          .doc(docId)
+          .set({'liked': isLikedList[index]});
+    } catch (e) {
+      print("Error updating good count: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Firestoreからのデータがまだ無い（ロード中または空）場合
     if (_photoUrls.isEmpty) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: const Center(
-          child: CircularProgressIndicator(), // ローディングインジケータ
+          child: CircularProgressIndicator(),
         ),
       );
     }
 
     return Scaffold(
       backgroundColor: Colors.black,
-      // 縦スクロールで作品（写真集）を切り替える
       body: PageView.builder(
         controller: _verticalPageController,
         scrollDirection: Axis.vertical,
-        itemCount: _photoUrls.length, // 写真集の数
+        itemCount: _photoUrls.length,
         onPageChanged: (index) {
-          // 別の作品に切り替わったらページ番号をリセット
           setState(() {
             _currentIndex = index;
             _currentPage = 0;
@@ -112,18 +129,16 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
         itemBuilder: (context, index) {
           return Stack(
             children: [
-              // 横スクロールで1作品内のページをめくる
               PreloadPageView.builder(
                 preloadPagesCount: 2,
                 scrollDirection: Axis.horizontal,
-                itemCount: _photoUrls[index].length, // 作品内のページ数
+                itemCount: _photoUrls[index].length,
                 onPageChanged: (pageIndex) {
                   setState(() {
                     _currentPage = pageIndex;
                   });
                 },
                 itemBuilder: (context, pageIndex) {
-                  // 1ページ分の写真を表示
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -134,7 +149,7 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
                         borderRadius: BorderRadius.circular(15),
                         child: Image.network(
                           _photoUrls[index][pageIndex],
-                          fit: BoxFit.contain, // 画像を余白込みで表示
+                          fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width * 0.9,
                           height: MediaQuery.of(context).size.height * 0.8,
                         ),
@@ -143,8 +158,6 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
                   );
                 },
               ),
-
-              // 画面下部中央に「現在のページ / 全ページ数」を表示
               Positioned(
                 bottom: 20,
                 left: 0,
@@ -170,12 +183,13 @@ class DmmPhotoPageState extends State<DmmPhotoPage> {
                   ),
                 ),
               ),
-
-              // 画面右下にいいねボタン等を表示 (SideButtonsは独自ウィジェット)
               RightSideButtons(
-                onLikePressed: _toggleLike,
-                isLiked: _isLiked,
-                likeCount: _likeCount,
+                onLikePressed: () =>
+                    _toggleLike(docIds[index], index), // ✅ docId を渡す
+                isLiked: isLikedList[index], // ✅ 各写真集の状態を参照
+                likeCount: likeCountList[index], // ✅ 各写真集の like 数を参照
+                shereUrl: shareUrls[index],
+                docId: docIds[index], // ✅ docId を渡す
               ),
             ],
           );

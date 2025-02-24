@@ -12,15 +12,17 @@ class FanzaMoviePage extends StatefulWidget {
 }
 
 class FanzaMoviePageState extends State<FanzaMoviePage> {
-  bool _isLiked = false;
-  int _likeCount = 0;
+  List<bool> isLikedList = []; // 各動画ごとの「いいね」状態
+  List<int> likeCountList = []; // 各動画ごとの「いいね」数
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
   List<String> videoUrls = [];
   List<List<String>> imageSlides = [];
+  List<String> shareUrls = [];
   List<VideoPlayerController> _controllers = [];
   bool _isMuted = false;
+  List<String> docIds = []; // ドキュメントIDを保存するリストを追加
 
   @override
   void initState() {
@@ -28,6 +30,7 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
     _fetchVideosFromFirestore();
   }
 
+  // Firestoreから動画データを取得し、リストに追加する
   Future<void> _fetchVideosFromFirestore() async {
     try {
       var snapshot = await FirebaseFirestore.instance
@@ -39,6 +42,9 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
       for (var doc in snapshot.docs) {
         String videoUrl = doc['サンプル動画URL'];
         List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['商品ページURL'];
+        String docId = doc.id;
+        int goodCount = doc['good'] ?? 0; // Firestore から good 数を取得
 
         var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
         await controller.initialize();
@@ -46,7 +52,11 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
         setState(() {
           videoUrls.add(videoUrl);
           imageSlides.add(images);
+          shareUrls.add(productPageUrl);
           _controllers.add(controller);
+          docIds.add(docId);
+          isLikedList.add(false); // 初期値は false
+          likeCountList.add(goodCount); // Firestore から取得した good 数をセット
 
           if (_controllers.length == 1) {
             controller.play();
@@ -54,7 +64,6 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
           }
         });
 
-        // **リスナーを追加して、シークバーをリアルタイム更新**
         controller.addListener(() {
           setState(() {});
         });
@@ -73,11 +82,31 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
     super.dispose();
   }
 
-  void _toggleLike() {
+  void _toggleLike(String docId, int index) async {
     setState(() {
-      _isLiked = !_isLiked;
-      _likeCount += _isLiked ? 1 : -1;
+      isLikedList[index] = !isLikedList[index];
+      likeCountList[index] += isLikedList[index] ? 1 : -1;
     });
+
+    try {
+      var docRef = FirebaseFirestore.instance
+          .collection('Products')
+          .doc('m9BJjrgbEY3UW6sARIXF')
+          .collection('FanzaMov')
+          .doc(docIds[index]); // `index` に対応するドキュメントを更新
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        var snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
+
+        int currentGood = snapshot['good'] ?? 0;
+        int newGood = isLikedList[index] ? currentGood + 1 : currentGood - 1;
+
+        transaction.update(docRef, {'good': newGood});
+      });
+    } catch (e) {
+      print("Error updating good count: $e");
+    }
   }
 
   void _toggleMute() {
@@ -140,8 +169,6 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                                             .aspectRatio,
                                         child: VideoPlayer(_controllers[index]),
                                       ),
-
-                                      // **右下端の消音ボタン**
                                       Positioned(
                                         right: 16,
                                         bottom: 16,
@@ -167,15 +194,14 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                           ),
                         ],
                       ),
-
-                      // **右側のいいねボタン**
                       RightSideButtons(
-                        onLikePressed: _toggleLike,
-                        isLiked: _isLiked,
-                        likeCount: _likeCount,
+                        onLikePressed: () =>
+                            _toggleLike(docIds[index], index), // ✅ docId を渡す
+                        isLiked: isLikedList[index],
+                        likeCount: likeCountList[index],
+                        shereUrl: shareUrls[index],
+                        docId: docIds[index], // ✅ ここで docId を渡す
                       ),
-
-                      // **シークバー（つまみなし）**
                       Positioned(
                         bottom: 0,
                         left: 16,
@@ -183,9 +209,9 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                         child: SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 0.0), // ✅ つまみを消す
+                                enabledThumbRadius: 0.0),
                             overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 0.0), // ✅ つまみの影も消す
+                                overlayRadius: 0.0),
                           ),
                           child: Slider(
                             activeColor: Colors.pink[200],
@@ -200,8 +226,6 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
                           ),
                         ),
                       ),
-
-                      // **再生/停止ボタン（動画が停止中のみ表示）**
                       if (!_controllers[index].value.isPlaying)
                         Center(
                           child: Icon(

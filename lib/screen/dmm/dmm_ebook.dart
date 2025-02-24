@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sample_reels/component/side_buttons.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
-/// DMMの電子書籍ページを表示するウィジェット
 class DmmEbookPage extends StatefulWidget {
   const DmmEbookPage({Key? key}) : super(key: key);
 
@@ -12,86 +11,105 @@ class DmmEbookPage extends StatefulWidget {
 }
 
 class DmmEbookPageState extends State<DmmEbookPage> {
-  // いいねフラグ（trueならいいねが押されている状態）
-  bool _isLiked = false;
-  // いいね数
-  int _likeCount = 0;
+  List<bool> isLikedList = []; // 各電子書籍ごとの「いいね」状態
+  List<int> likeCountList = []; // 各電子書籍ごとの「いいね」数
+  List<List<String>> _ebookUrls = []; // Firestore から取得するページ画像
+  List<String> shareUrls = [];
+  List<String> docIds = []; // Firestore のドキュメントIDリスト
 
-  // 縦方向のページコントローラ
-  // 1作品につき1ページとして扱い、作品同士を縦スクロールで切り替える
   final PageController _verticalPageController = PageController();
-
-  // 現在表示している作品のインデックス
   int _currentIndex = 0;
-
-  // 現在表示している作品内のページ番号（横スクロールでのページ）
   int _currentPage = 0;
-
-  // Firestoreから取得した作品ごとの画像URLリストを格納
-  // 例: [[imgA_1.jpg, imgA_2.jpg], [imgB_1.jpg, imgB_2.jpg], ...]
-  List<List<String>> _mangaUrls = [];
 
   @override
   void initState() {
     super.initState();
-    // ウィジェット生成時にFirestoreから画像を取得
     _fetchImagesFromFirestore();
   }
 
-  /// Firestoreから作品のサンプル画像URLを取得し、_mangaUrlsへ格納する
+  /// Firestore から「サンプル画像」と「good」フィールドを取得
   Future<void> _fetchImagesFromFirestore() async {
     try {
-      // 'Products'コレクションからdoc('m9BJjrgbEY3UW6sARIXF')を指定し、
-      // その下の 'DmmEbook' コレクションを取得
       final snapshot = await FirebaseFirestore.instance
           .collection('Products')
           .doc('m9BJjrgbEY3UW6sARIXF')
           .collection('DmmEbook')
           .get();
 
-      // 取得したデータを一時的に格納するリスト
-      final newMangaUrls = <List<String>>[];
+      final newEbookUrls = <List<String>>[];
+      final newLikeCountList = <int>[];
+      final newIsLikedList = <bool>[];
+      final newDocIds = <String>[];
 
-      // 各ドキュメントをループして「サンプル画像」フィールドを取得
       for (var doc in snapshot.docs) {
-        // 「サンプル画像」フィールドが存在するかをチェック
-        if (!doc.data().containsKey('サンプル画像')) {
-          print("⚠️ 必要なフィールドが見つかりません: ${doc.data().keys}");
-          continue;
-        }
+        if (!doc.data().containsKey('サンプル画像')) continue;
 
-        // 「サンプル画像」をList<String>として取り出す
-        final List<String> images = List<String>.from(doc['サンプル画像']);
-        // 作品ごとに画像リストをnewMangaUrlsへ追加
-        newMangaUrls.add(images);
+        List<String> images = List<String>.from(doc['サンプル画像']);
+        String productPageUrl = doc['url']; // 商品ページURL
+        int goodCount = doc['good'] ?? 0;
+        String docId = doc.id;
+
+        newEbookUrls.add(images);
+        newLikeCountList.add(goodCount);
+        newIsLikedList.add(false); // 初期状態は false
+        newDocIds.add(docId);
+
+        setState(() {
+          _ebookUrls = newEbookUrls;
+          likeCountList = newLikeCountList;
+          isLikedList = newIsLikedList;
+          shareUrls.add(productPageUrl);
+          docIds = newDocIds;
+        });
       }
-
-      // setStateで状態を更新（画面再描画）
-      setState(() {
-        _mangaUrls = newMangaUrls;
-      });
     } catch (e) {
       print("エラーが発生しました: $e");
     }
   }
 
-  /// いいねボタンが押された時に呼ばれるメソッド
-  void _toggleLike() {
+  /// Firestore の `good` を更新
+  void _toggleLike(String docId, int index) async {
     setState(() {
-      // いいね状態を反転し、like数を＋1 or -1 する
-      _isLiked = !_isLiked;
-      _likeCount += _isLiked ? 1 : -1;
+      isLikedList[index] = !isLikedList[index];
+      likeCountList[index] += isLikedList[index] ? 1 : -1;
     });
+
+    try {
+      var docRef = FirebaseFirestore.instance
+          .collection('Products')
+          .doc('m9BJjrgbEY3UW6sARIXF')
+          .collection('DmmEbook')
+          .doc(docId);
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        var snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
+
+        int currentGood = snapshot['good'] ?? 0;
+        int newGood = isLikedList[index] ? currentGood + 1 : currentGood - 1;
+
+        transaction.update(docRef, {'good': newGood});
+      });
+
+      // Firestore にユーザーのいいね状態を保存
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc('userId') // TODO: 実際のユーザーIDを設定
+          .collection('LikedEbooks')
+          .doc(docId)
+          .set({'liked': isLikedList[index]});
+    } catch (e) {
+      print("Error updating good count: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // _mangaUrls が空、あるいはFirestoreの取得がまだ完了していない場合の処理
-    if (_mangaUrls.isEmpty) {
+    if (_ebookUrls.isEmpty) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: const Center(
-          child: CircularProgressIndicator(), // ローディングインジケータを表示
+          child: CircularProgressIndicator(),
         ),
       );
     }
@@ -99,48 +117,39 @@ class DmmEbookPageState extends State<DmmEbookPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: PageView.builder(
-        // 縦スクロールのPageView
         controller: _verticalPageController,
         scrollDirection: Axis.vertical,
-        itemCount: _mangaUrls.length, // 作品数を指定
+        itemCount: _ebookUrls.length,
         onPageChanged: (index) {
-          // 縦スクロールで別の作品に切り替わった際の処理
           setState(() {
             _currentIndex = index;
-            _currentPage = 0; // 横スクロールページもリセット
+            _currentPage = 0;
           });
         },
         itemBuilder: (context, index) {
-          // 作品を描画するウィジェット
           return Stack(
             children: [
-              // ----------------------
-              // 作品内ページの横スクロール
-              // ----------------------
               PreloadPageView.builder(
-                // 画像を事前読み込みするパラメータ
                 preloadPagesCount: 2,
                 scrollDirection: Axis.horizontal,
-                itemCount: _mangaUrls[index].length, // 1つの作品のページ数
+                itemCount: _ebookUrls[index].length,
                 onPageChanged: (pageIndex) {
                   setState(() {
                     _currentPage = pageIndex;
                   });
                 },
                 itemBuilder: (context, pageIndex) {
-                  // 横スクロールの1ページ
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 30,
                       ),
-                      // 枠丸めをしたImageウィジェットで表示
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
                         child: Image.network(
-                          _mangaUrls[index][pageIndex],
-                          fit: BoxFit.contain, // 画像を等比スケールで収める
+                          _ebookUrls[index][pageIndex],
+                          fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width * 0.9,
                           height: MediaQuery.of(context).size.height * 0.8,
                         ),
@@ -149,10 +158,6 @@ class DmmEbookPageState extends State<DmmEbookPage> {
                   );
                 },
               ),
-
-              // ----------------------
-              // 画面下部中央にページ番号を表示
-              // ----------------------
               Positioned(
                 bottom: 20,
                 left: 0,
@@ -168,8 +173,7 @@ class DmmEbookPageState extends State<DmmEbookPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      // 現在ページ / 全ページ
-                      "${_currentPage + 1} / ${_mangaUrls[_currentIndex].length}",
+                      "${_currentPage + 1} / ${_ebookUrls[_currentIndex].length}",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -179,15 +183,13 @@ class DmmEbookPageState extends State<DmmEbookPage> {
                   ),
                 ),
               ),
-
-              // ----------------------
-              // 画面右下にいいねボタンなどを表示
-              // （SideButtonsは独自のコンポーネント）
-              // ----------------------
               RightSideButtons(
-                onLikePressed: _toggleLike, // いいねボタン押下時の処理
-                isLiked: _isLiked,         // いいね状態
-                likeCount: _likeCount,     // いいね数
+                onLikePressed: () =>
+                    _toggleLike(docIds[index], index), // ✅ docId を渡す
+                isLiked: isLikedList[index], // ✅ 各電子書籍の状態を参照
+                likeCount: likeCountList[index], // ✅ 各電子書籍の like 数を参照
+                shereUrl: shareUrls[index],
+                docId: docIds[index], // ✅ docId を渡す
               ),
             ],
           );

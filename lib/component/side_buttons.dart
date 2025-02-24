@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sample_reels/component/comment.dart';
 
 class RightSideButtons extends StatefulWidget {
   final VoidCallback onLikePressed;
   final bool isLiked;
   final int likeCount;
+  final String shereUrl; // ✅ 追加: シェアする動画のURL
+  final String docId;
 
   const RightSideButtons({
     super.key,
     required this.onLikePressed,
     required this.isLiked,
     required this.likeCount,
+    required this.shereUrl, // ✅ 必須パラメータに追加
+    required this.docId,
   });
 
   @override
@@ -29,6 +34,11 @@ class RightSideButtonsState extends State<RightSideButtons> {
       backgroundColor: Colors.white, // ✅ 背景色
       builder: (context) => const CommentSheet(), // ✅ `CommentSheet` を呼び出す
     );
+  }
+
+  // ✅ シェア機能を追加
+  void _shareVideo() {
+    Share.share('この動画をチェック！\n${widget.shereUrl}');
   }
 
   @override
@@ -80,12 +90,16 @@ class RightSideButtonsState extends State<RightSideButtons> {
           ),
           const SizedBox(height: 20),
 
-          // 共有ボタン
-          Column(
-            children: [
-              Icon(Icons.more_horiz, color: Colors.white, size: 40),
-              Text("シェア", style: TextStyle(color: Colors.white, fontSize: 14)),
-            ],
+          // ✅ シェアボタン
+          GestureDetector(
+            onTap: _shareVideo, // ✅ シェア機能を追加
+            child: Column(
+              children: [
+                Icon(Icons.more_horiz, color: Colors.white, size: 40),
+                Text("シェア",
+                    style: TextStyle(color: Colors.white, fontSize: 14)),
+              ],
+            ),
           ),
         ],
       ),
