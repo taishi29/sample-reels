@@ -24,4 +24,36 @@ class AuthService {
       return null;
     }
   }
+
+
+  // ここからが追加：ログイン用のメソッド
+  Future<User?> signInUser(String email, String password) async {
+    try {
+      // FirebaseAuth のサインインメソッドを利用
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return userCredential.user; // 成功時には User を返す
+    } on FirebaseAuthException catch (e) {
+      // FirebaseAuthException の場合は code で内容を判別
+      if (e.code == 'user-not-found') {
+        print('❌ ユーザーが見つかりません。メールアドレスを確認してください。');
+      } else if (e.code == 'wrong-password') {
+        print('❌ パスワードが間違っています。');
+      } else {
+        print('❌ ログインエラー: ${e.message}');
+      }
+      return null;
+    } catch (e) {
+      // それ以外のエラー想定
+      print("❌ 予期せぬエラー: $e");
+      return null;
+    }
+  }
 }
+
+
+
+
+

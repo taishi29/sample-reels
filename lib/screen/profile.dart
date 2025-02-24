@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // スクリーンのimport
 import 'package:sample_reels/screen/dmm/dmm_top.dart';
 import 'package:sample_reels/screen/fanza/fanza_top.dart';
+import 'package:sample_reels/screen/profileedit.dart'; // 🔹 profileedit.dart をインポート
 // componentのimport
 import 'package:sample_reels/component/bottom_bar.dart';
 
@@ -13,7 +16,46 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  int _selectedIndex = 3; // 🔹 BottomNavigationBar のインデックス（1 = FANZA）
+  int _selectedIndex = 3; // 🔹 BottomNavigationBar のインデックス
+  String name = "Loading..."; // 初期値
+  String introduction = "Loading..."; // 初期値
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData(); // Firestoreからデータを取得
+  }
+
+  // 🔹 Firestore から `Uid` に対応する `name` と `introduction` を取得
+  Future<void> _fetchUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String uid = user.uid;
+
+      try {
+        DocumentSnapshot userDoc = 
+            await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+
+        if (userDoc.exists) {
+          setState(() {
+            name = userDoc['name'] ?? "No Name";
+            introduction = userDoc['introduction'] ?? "No Introduction";
+          });
+        } else {
+          setState(() {
+            name = "User not found";
+            introduction = "";
+          });
+        }
+      } catch (e) {
+        print("🔥 Firestoreエラー: $e");
+        setState(() {
+          name = "Error loading";
+          introduction = "";
+        });
+      }
+    }
+  }
 
   // 🔹 BottomNavigationBar のタップ時の処理
   void _onItemTapped(int index) {
@@ -30,7 +72,7 @@ class ProfilePageState extends State<ProfilePage> {
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 250), // アニメーション時間
+          transitionDuration: const Duration(milliseconds: 250),
         ),
       );
     } else if (index == 1) {
@@ -45,7 +87,7 @@ class ProfilePageState extends State<ProfilePage> {
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 250), // アニメーション時間
+          transitionDuration: const Duration(milliseconds: 250),
         ),
       );
     } else {
@@ -62,9 +104,9 @@ class ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'ヒカキン',
-          style: TextStyle(
+        title: Text(
+          name, // 🔹 Firestoreから取得した `name` を表示
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 15,
             fontWeight: FontWeight.bold,
@@ -83,36 +125,14 @@ class ProfilePageState extends State<ProfilePage> {
             radius: 40,
           ),
           const SizedBox(height: 10),
-          // フォロー数といいね数
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
-                children: const [
-                  Text(
-                    "28",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "フォロー中",
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 30),
-              Column(
-                children: const [
-                  Text(
-                    "3",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "いいね",
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ],
+          // 🔹 Firestore から取得した `introduction` を表示
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              introduction,
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 10),
           // プロフィール編集ボタン
@@ -122,7 +142,14 @@ class ProfilePageState extends State<ProfilePage> {
               foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileEditPage(),
+                ),
+              );
+            },
             child: const Text("プロフィールを編集"),
           ),
           const SizedBox(height: 10),
@@ -132,12 +159,12 @@ class ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3, // 3列
-                  crossAxisSpacing: 4.0, // 横方向の間隔
-                  mainAxisSpacing: 4.0, // 縦方向の間隔
-                  childAspectRatio: 1.0, // 正方形のタイル
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 4.0,
+                  mainAxisSpacing: 4.0,
+                  childAspectRatio: 1.0,
                 ),
-                itemCount: 9, // 9つのタイル
+                itemCount: 9,
                 itemBuilder: (context, index) {
                   return Container(
                     decoration: BoxDecoration(
@@ -159,8 +186,8 @@ class ProfilePageState extends State<ProfilePage> {
         ],
       ),
       bottomNavigationBar: BottomNavBar(
-        onItemTapped: _onItemTapped, // 🔹 タップされたら `_onItemTapped()` を実行
-        currentIndex: _selectedIndex, // 🔹 現在の選択中のインデックスを渡す
+        onItemTapped: _onItemTapped,
+        currentIndex: _selectedIndex,
       ),
     );
   }

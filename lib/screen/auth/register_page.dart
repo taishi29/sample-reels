@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sample_reels/component/auth_service.dart';
 import 'package:sample_reels/screen/profile.dart'; // 遷移先をimport
+import 'package:sample_reels/screen/auth/login.dart'; // ★ログイン画面をimport（実際のパスは合わせてください）
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -38,7 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (user != null) {
       print("✅ ユーザー登録成功: ${user.uid}");
 
-      // 成功したら `HomePage` に遷移
+      // 成功したら ProfilePage に遷移
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => ProfilePage()),
@@ -79,6 +80,18 @@ class _RegisterPageState extends State<RegisterPage> {
                   textStyle: TextStyle(fontSize: 16),
                 ),
                 child: Text('登録する'),
+              ),
+              SizedBox(height: 10),
+              // ★ここに追加する「ログイン」ボタン
+              TextButton(
+                onPressed: () {
+                  // ログイン画面へ遷移
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
+                child: Text('既にアカウントをお持ちの場合はこちら'),
               ),
             ],
           ),

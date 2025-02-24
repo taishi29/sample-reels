@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:sample_reels/screen/dmm/dmm_top.dart';
-import 'firebase_options.dart';
-import 'package:sample_reels/screen/auth/register_page.dart'; // ✅ ユーザー登録画面をインポート
+import 'package:firebase_core/firebase_core.dart'; // ✅ Firebaseをインポート
+import 'package:sample_reels/screen/auth/register_page.dart';
+import 'package:sample_reels/screen/fanza/fanza_top.dart';
+import 'firebase_options.dart'; // ✅ Firebase 設定ファイル
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // ✅ Firebase 初期化前に必要
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: DefaultFirebaseOptions.currentPlatform, // ✅ Firebase 設定を適用
   );
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      home: RegisterPage(), // ✅ ユーザー登録画面を最初に表示
+      home:  RegisterPage(),
     );
   }
 }
