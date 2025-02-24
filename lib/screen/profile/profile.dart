@@ -116,10 +116,14 @@ class ProfilePageState extends State<ProfilePage> {
           // プロフィール画像
           const CircleAvatar(
             backgroundColor: Colors.blue,
-            backgroundImage: NetworkImage(
-                'https://pbs.twimg.com/profile_images/1476938674612805637/Z9-fGmey_400x400.jpg'),
             radius: 40,
+            child: Icon(
+              Icons.person,
+              color: Colors.white60,
+              size: 30,
+            ),
           ),
+
           const SizedBox(height: 30),
           // プロフィール編集ボタン
           ElevatedButton(
