@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 // 各スクリーンのimport
 import 'package:sample_reels/screen/dmm/dmm_photo.dart';
 import 'package:sample_reels/screen/fanza/fanza_top.dart';
-import 'package:sample_reels/screen/profile.dart';
+import 'package:sample_reels/screen/profile/profile.dart';
 import 'package:sample_reels/screen/dmm/dmm_movie.dart';
 import 'package:sample_reels/screen/dmm/dmm_manga.dart';
 import 'package:sample_reels/screen/dmm/dmm_ebook.dart';
-
 
 // componentのimport
 import 'package:sample_reels/component/bottom_bar.dart';
@@ -132,7 +131,6 @@ class _DmmTopPageState extends State<DmmTopPage> {
                   DmmMoviePage(),
                   DmmMangaPage(),
                   DmmEbookPage(),
-
                 ],
               ),
             ),
