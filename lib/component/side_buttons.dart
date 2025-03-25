@@ -38,7 +38,7 @@ class RightSideButtonsState extends State<RightSideButtons> {
 
   // ✅ シェア機能を追加
   void _shareVideo() {
-    Share.share('この動画をチェック！\n${widget.shereUrl}');
+    Share.share('💕💕この動画をチェック！💕💕\n${widget.shereUrl}');
   }
 
   @override

@@ -35,14 +35,15 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
     try {
       var snapshot = await FirebaseFirestore.instance
           .collection('Products')
-          .doc('m9BJjrgbEY3UW6sARIXF')
-          .collection('FanzaMov')
+          .doc('5gPSzfeZFiedoFjMgj5d')
+          .collection('FanzaMovie')
           .get();
 
       for (var doc in snapshot.docs) {
-        String videoUrl = doc['サンプル動画URL'];
-        List<String> images = List<String>.from(doc['サンプル画像']);
-        String productPageUrl = doc['商品ページURL'];
+        String videoUrl = doc['sampleMovieUrl'];
+        List<String> images =
+            List<String>.from(doc['sampleImageUrls']['sampleL'] ?? []);
+        String productPageUrl = doc['affiliateUrl'];
         String docId = doc.id;
         int goodCount = doc['good'] ?? 0; // Firestore から good 数を取得
 
@@ -91,8 +92,8 @@ class FanzaMoviePageState extends State<FanzaMoviePage> {
     try {
       var docRef = FirebaseFirestore.instance
           .collection('Products')
-          .doc('m9BJjrgbEY3UW6sARIXF')
-          .collection('FanzaMov')
+          .doc('5gPSzfeZFiedoFjMgj5d')
+          .collection('FanzaMovie')
           .doc(docIds[index]); // `index` に対応するドキュメントを更新
 
       await FirebaseFirestore.instance.runTransaction((transaction) async {

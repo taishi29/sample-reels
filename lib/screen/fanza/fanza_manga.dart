@@ -32,20 +32,30 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('Products')
-          .doc('m9BJjrgbEY3UW6sARIXF')
-          .collection('Fanzacomic')
+          .doc('5gPSzfeZFiedoFjMgj5d')
+          .collection('FanzaBook')
           .get();
 
       final newMangaUrls = <List<String>>[];
       final newLikeCountList = <int>[];
       final newIsLikedList = <bool>[];
       final newDocIds = <String>[];
+      final newShareUrls = <String>[];
 
       for (var doc in snapshot.docs) {
-        if (!doc.data().containsKey('サンプル画像')) continue;
+        if (!doc.data().containsKey('imageUrls')) continue;
 
-        List<String> images = List<String>.from(doc['サンプル画像']);
-        String productPageUrl = doc['商品ページURL'];
+        // 🔥 FirestoreのデータがStringかListかを判定
+        List<String> images = [];
+        var imageData = doc['imageUrls']['list'];
+
+        if (imageData is List) {
+          images = List<String>.from(imageData); // 正しくリストの場合
+        } else if (imageData is String) {
+          images = [imageData]; // 文字列の場合、リストに変換
+        }
+
+        String productPageUrl = doc['affiliateUrl'] ?? "";
         int goodCount = doc['good'] ?? 0;
         String docId = doc.id;
 
@@ -53,17 +63,18 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
         newLikeCountList.add(goodCount);
         newIsLikedList.add(false); // 初期状態は false
         newDocIds.add(docId);
-
-        setState(() {
-          _mangaUrls = newMangaUrls;
-          likeCountList = newLikeCountList;
-          isLikedList = newIsLikedList;
-          shareUrls.add(productPageUrl);
-          docIds = newDocIds;
-        });
+        newShareUrls.add(productPageUrl);
       }
+
+      setState(() {
+        _mangaUrls = newMangaUrls;
+        likeCountList = newLikeCountList;
+        isLikedList = newIsLikedList;
+        docIds = newDocIds;
+        shareUrls = newShareUrls;
+      });
     } catch (e) {
-      print("エラーが発生しました: $e");
+      print("❌ Firestoreデータ取得エラー: $e");
     }
   }
 
@@ -77,8 +88,8 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
     try {
       var docRef = FirebaseFirestore.instance
           .collection('Products')
-          .doc('m9BJjrgbEY3UW6sARIXF')
-          .collection('Fanzacomic')
+          .doc('5gPSzfeZFiedoFjMgj5d')
+          .collection('FanzaBook')
           .doc(docId);
 
       await FirebaseFirestore.instance.runTransaction((transaction) async {
@@ -92,14 +103,15 @@ class FanzaMangaPageState extends State<FanzaMangaPage> {
       });
 
       // Firestore にユーザーのいいね状態を保存
+      String userId = "test_user"; // TODO: 実際のユーザーIDを設定
       await FirebaseFirestore.instance
           .collection('Users')
-          .doc('userId') // TODO: 実際のユーザーIDを設定
+          .doc(userId)
           .collection('LikedManga')
           .doc(docId)
           .set({'liked': isLikedList[index]});
     } catch (e) {
-      print("Error updating good count: $e");
+      print("❌ Firestore `good` 更新エラー: $e");
     }
   }
 
